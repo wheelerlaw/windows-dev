@@ -51,7 +51,7 @@ $(Get-ChildItem -Path cert:\LocalMachine\Root -Recurse) + $( Get-ChildItem -Path
 # Run the Cywgin setup bash scripts since I'm better at bash than powershell.
 Write-Output "Running scripts"
 $env:CHERE_INVOKING=1
-& "$cygwin_dir/bin/bash" --login ./setup.bash "$cygwin_dir/corp-ca-bundle.pem"
+& "$cygwin_dir/bin/bash" --login ./setup.bash
 
 # Define a quick recursive function to kill the px process tree.
 function Kill-Tree {
