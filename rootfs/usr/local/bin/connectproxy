@@ -1,0 +1,30 @@
+#!/bin/sh
+# Use socat to proxy any protocol through an HTTP CONNECT firewall.
+# Useful if you are trying to SSH into a remote server or clone git:// from inside a company.
+#
+# Requires that the proxy allows CONNECT to the port specified
+# in this scripts arguments (e.g. git: 9418, SSH: 22, etc).
+#
+# Save this file as connectproxy somewhere in your path (e.g., ~/bin) and then run
+#   chmod +x connectproxy
+#   git config --global core.gitproxy connectproxy
+#
+# Or put the following in your ~/.ssh/config file:
+#   Host *
+#       ProxyCommand connectproxy %h %p
+#
+# More details at https://gist.github.com/wheelerlaw/a28c7461d9070a9d746b185aefaef05b
+
+# Configuration. Pulls proxy information from the http_proxy environment variable.
+echo $http_proxy
+proxy_host=`echo $http_proxy | sed -e "s/[^/]*\/\/\([^@]*@\)\?\([^:/]*\).*/\2/"`
+proxy_port=`echo $http_proxy | sed -e "s/[^/]*\/\/\([^@]*@\)\?\([^:/]*\)\(:\([0-9]\{1,5\}\)\)\?.*/\4/"`
+echo $proxy_host
+echo $proxy_port
+dest_host=$1
+dest_port=$2
+
+echo $dest_host
+echo $dest_port
+
+exec socat STDIO PROXY:$proxy_host:$dest_host:$dest_port,proxyport=$proxy_port
