@@ -53,5 +53,12 @@ Write-Output "Running scripts"
 $env:CHERE_INVOKING=1
 & "$cygwin_dir/bin/bash" --login ./setup.bash "$cygwin_dir/corp-ca-bundle.pem"
 
-# Stop px when we are done, since we don't need it anymore.
-Stop-Process -Id $px.Id
+# Define a quick recursive function to kill the px process tree.
+function Kill-Tree {
+    Param([int]$ppid)
+    Get-CimInstance Win32_Process | Where-Object { $_.ParentProcessId -eq $ppid } | ForEach-Object { Kill-Tree $_.ProcessId }
+    Stop-Process -Id $ppid
+}
+
+# Kill px when we are done.
+Kill-Tree $px.id
