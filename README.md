@@ -20,7 +20,7 @@ Unblock-File .\bootstrap.ps1
 This will download Cygwin, export the certificates, and format them to the default CA certificate chain located at 
 `C:/root/cygwin64/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem`. 
 
-Git can be configured to use this file by running the following command:
+If you are using Cygwin alongside GitBash, the GitBash git can be configured to use this file by running the following command:
 ```bash
 git config --global http.sslCAInfo <path_to_ca_cert_chain>
 ```
