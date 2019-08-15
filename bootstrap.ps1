@@ -1,6 +1,6 @@
 $ErrorActionPreference = "stop"
 
-$cygwin_dir = "C:/root/cygwin64"
+$cygwin_dir = "%LOCALAPPDATA%/cygwin64"
 
 mkdir $cygwin_dir -ErrorAction Stop
 
