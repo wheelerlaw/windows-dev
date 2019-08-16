@@ -13,6 +13,7 @@ $px = $(Start-Process -NoNewWindow -PassThru ./dist/px.exe)
 $env:http_proxy="http://localhost:3128"
 $env:https_proxy="http://localhost:3128"
 
+[Net.ServicePointManager]::SecurityProtocol = "tls12, tls11, tls"
 $proxy = New-Object System.Net.WebProxy($env:http_proxy)
 $wc = new-object system.net.WebClient
 $wc.proxy = $proxy
