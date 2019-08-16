@@ -1,3 +1,50 @@
+####################################################
+# Function definitions
+####################################################
+
+# Retry a command 5 times or until successful, whichever comes first.
+function Retry-Command {
+    [CmdletBinding()]
+    Param(
+        [Parameter(Position=0, Mandatory=$true)]
+        [scriptblock]$ScriptBlock,
+
+        [Parameter(Position=1, Mandatory=$false)]
+        [int]$Maximum = 5
+    )
+
+    Begin {
+        $cnt = 0
+    }
+
+    Process {
+        do {
+            $cnt++
+            try {
+                $ScriptBlock.Invoke()
+                return
+            } catch {
+                Write-Error $_.Exception.InnerException.Message -ErrorAction Continue
+            }
+        } while ($cnt -lt $Maximum)
+
+        # Throw an error after $Maximum unsuccessful invocations. Doesn't need
+        # a condition, since the function returns upon successful invocation.
+        throw 'Execution failed.'
+    }
+}
+
+# Define a quick recursive function to kill the px process tree.
+function Kill-Tree {
+    Param([int]$ppid)
+    Get-CimInstance Win32_Process | Where-Object { $_.ParentProcessId -eq $ppid } | ForEach-Object { Kill-Tree $_.ProcessId }
+    Stop-Process -Id $ppid
+}
+
+####################################################
+# Main script
+####################################################
+
 $ErrorActionPreference = "stop"
 
 $cygwin_dir = "$env:LOCALAPPDATA/cygwin64"
@@ -18,7 +65,10 @@ $proxy = New-Object System.Net.WebProxy($env:http_proxy)
 $wc = new-object system.net.WebClient
 $wc.proxy = $proxy
 
-$wc.DownloadFile('https://cygwin.com/setup-x86_64.exe',"$cygwin_dir/setup-x86_64.exe")
+# Retry connecting to cygwins website just in case px takes a few to start up
+Retry-Command {
+    $wc.DownloadFile('https://cygwin.com/setup-x86_64.exe',"$cygwin_dir/setup-x86_64.exe")
+}
 
 Write-Output "Installing cygwin"
 & "$cygwin_dir/setup-x86_64.exe" `
@@ -53,13 +103,6 @@ $(Get-ChildItem -Path cert:\LocalMachine\Root -Recurse) + $( Get-ChildItem -Path
 Write-Output "Running scripts"
 $env:CHERE_INVOKING=1
 & "$cygwin_dir/bin/bash" --login ./setup.bash
-
-# Define a quick recursive function to kill the px process tree.
-function Kill-Tree {
-    Param([int]$ppid)
-    Get-CimInstance Win32_Process | Where-Object { $_.ParentProcessId -eq $ppid } | ForEach-Object { Kill-Tree $_.ProcessId }
-    Stop-Process -Id $ppid
-}
 
 # Kill px when we are done.
 Kill-Tree $px.id
