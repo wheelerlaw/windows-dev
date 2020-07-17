@@ -24,3 +24,13 @@ If you are using Cygwin alongside GitBash, the GitBash git can be configured to 
 ```bash
 git config --global http.sslCAInfo <path_to_ca_cert_chain>
 ```
+
+## Troubleshooting
+
+If you get an error about execution policy despite having unblocked the file with the command
+from above, make sure the execution policy is set to something more permissive.
+
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned
+```
+
