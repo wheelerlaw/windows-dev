@@ -31,6 +31,6 @@ If you get an error about execution policy despite having unblocked the file wit
 from above, make sure the execution policy is set to something more permissive.
 
 ```powershell
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned
+Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
 ```
 

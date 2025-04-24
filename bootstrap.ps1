@@ -47,6 +47,9 @@ function Kill-Tree {
 
 $ErrorActionPreference = "stop"
 
+# Set this to $true if proxy variables are required to be set in order to reach the internet.
+$usePx = $false
+
 $cygwin_dir = "$env:LOCALAPPDATA/cygwin64"
 
 mkdir $cygwin_dir -ErrorAction Stop
@@ -56,14 +59,19 @@ Write-Output "Downloading Cygwin"
 
 # Use px to allow UNIX-y programs that don't speak NTML to connect to the internet through the corporate proxies.
 # See https://github.com/genotrance/px for more information
-$px = $(Start-Process -NoNewWindow -PassThru ./dist/px.exe)
-$env:http_proxy="http://localhost:3128"
-$env:https_proxy="http://localhost:3128"
+if ($usePx) {
+    $px = $(Start-Process -NoNewWindow -PassThru ./dist/px.exe)
+    $env:http_proxy="http://localhost:3128"
+    $env:https_proxy="http://localhost:3128"
+}
 
 [Net.ServicePointManager]::SecurityProtocol = "tls12, tls11, tls"
-$proxy = New-Object System.Net.WebProxy($env:http_proxy)
 $wc = new-object system.net.WebClient
-$wc.proxy = $proxy
+
+if ($usePx) {
+    $proxy = New-Object System.Net.WebProxy($env:http_proxy)
+    $wc.proxy = $proxy
+}
 
 # Retry connecting to cygwins website just in case px takes a few to start up
 Retry-Command {
@@ -105,4 +113,6 @@ $env:CHERE_INVOKING=1
 & "$cygwin_dir/bin/bash" --login ./setup.bash
 
 # Kill px when we are done.
-Kill-Tree $px.id
+if ($usePx) {
+    Kill-Tree $px.id
+}
